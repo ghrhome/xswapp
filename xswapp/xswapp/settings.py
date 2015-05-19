@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Django settings for xswapp project.
 
@@ -42,6 +44,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'xswshop',
     'xswtest',
+    'register',
+    'ckeditor',
+    'smart_selects',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -66,9 +71,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-	'NAME':'npi',
-	'USER':'npi',
-	'PASSWORD':'npi2015',
+	'NAME':'xswapp',
+	'USER':'xswapp',
+	'PASSWORD':'xswapp2015',
 	'HOST':'',
 	'PORT':'',
     }
@@ -121,6 +126,15 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = PATH+'/media/'
 MEDIA_URL = '/media/'
 
-CKEDITOR_UPLOAD_PATH = "uploads/"
+#send mail settings
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST='smtp.mxhichina.com'
+EMAIL_PORT='25'
+#EMAIL_USE_SSL= True
+EMAIL_HOST_USER='ncheng@ghrdesign.com'
+MAIL_HOST_PASSWORD='iloveghrhome'
+
+CKEDITOR_UPLOAD_PATH = "uploads"
 CKEDITOR_IMAGE_BACKEND = "pillow"
-CKEDITOR_JQUERY_URL = '/static/jquery-1.11.1.min.js'
+CKEDITOR_JQUERY_URL = '/static/dist/js/jquery-1.11.3.min.js'

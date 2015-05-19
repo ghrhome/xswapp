@@ -49,3 +49,4 @@ def vote(request, question_id):
 
 		return HttpResponseRedirect(reverse('xswtest:results',args=(p.id)))
 
+

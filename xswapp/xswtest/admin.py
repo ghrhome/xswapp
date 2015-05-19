@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Question
+from .models import Question,Download,Hometown
 # Register your models here.
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
@@ -9,7 +9,8 @@ class QuestionAdmin(admin.ModelAdmin):
     ]
 
 admin.site.register(Question,QuestionAdmin)
-
+admin.site.register(Download)
+admin.site.register(Hometown)
 
 
 
