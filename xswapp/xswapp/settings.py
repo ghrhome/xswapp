@@ -43,8 +43,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'xswshop',
-    'xswtest',
-    'register',
+#    'xswtest',
+#    'register',
     'ckeditor',
     'smart_selects',
 )

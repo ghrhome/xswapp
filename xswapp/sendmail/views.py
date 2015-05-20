@@ -15,3 +15,10 @@ def test(request):
 
 	return HttpResponse('email Send---'+str(result))
 # Create your views here.
+
+def getest(request):
+	a=request.GET['email']
+	b=request.GET['test']
+	return HttpResponse(a+b)
+
+

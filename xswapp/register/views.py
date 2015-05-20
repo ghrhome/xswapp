@@ -48,4 +48,4 @@ def getAreaJson(request):
 	
 #	return HttpResponse(json.dumps(response_data), content_type="application
 #/json")
-	return HttpResponse(json.dumps(response_data) ,content_type='application/json' )
+	return HttpResponse(json.dumps(response_data,ensure_ascii=False,indent=4) ,content_type='application/json' )
