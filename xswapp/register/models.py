@@ -100,6 +100,12 @@ class UserParent(models.Model):
     school = models.CharField(max_length=100, blank=True, verbose_name='学校名称')
     relation = models.CharField(max_length=20, choices=RELATION, verbose_name='宝贝关系')
 
+    def __unicode__(self):
+        return self.user
+
+    class Meta:
+        verbose_name = "家长"
+
 
 class UserTeacher(models.Model):
     MR = 'mr'
@@ -118,6 +124,11 @@ class UserTeacher(models.Model):
 
     grade = models.CharField(max_length=10, blank=True, verbose_name='任教年级')
     school = models.CharField(max_length=100, blank=True, verbose_name='学校名称 ')
+    def __unicode__(self):
+        return self.user
+
+    class Meta:
+        verbose_name = "老师"
 
 
 class Question(models.Model):

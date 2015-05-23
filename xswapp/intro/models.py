@@ -5,6 +5,7 @@ from django.db import models
 class Intro(models.Model):
 	title=models.CharField(max_length=50,verbose_name='小狮王简介')
 	intro=models.TextField(verbose_name='简介')
+	intro_img=models.ImageField(verbose_name='简介配图')
 	models.DateField(auto_now=True)
 	def __unicode__(self):
 		return self.title

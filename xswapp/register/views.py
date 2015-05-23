@@ -7,6 +7,30 @@ from .models import AsAreas
 import json
 
 # Create your views here.
+def regParent(request):
+
+	return HttpResponse('')
+
+def regTeacher(request):
+
+	return HttpResponse('')
+
+def login(request):
+	
+	return HttpResponse('')
+
+def question(request):
+
+	return HttpResponse('')
+
+def answer(request):
+		
+	return HttpResponse('')
+
+def update(request):
+
+	return HttpResponse('')
+
 
 def getAreaJson(request):
         response_data=[]
