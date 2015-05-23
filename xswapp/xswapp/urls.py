@@ -10,7 +10,7 @@ urlpatterns = patterns('',
     
     url(r'^polls/',include('xswtest.urls',namespace='xswtest')),
     url(r'^sendmail/',include('sendmail.urls',namespace='sendmail')),	
-    url(r'^register/',include('register.urls',namespace='register')),
+    url(r'^user/',include('register.urls',namespace='user')),
     
     url(r'^ckeditor/', include('ckeditor.urls')),   
     url(r'^chaining/', include('smart_selects.urls')),

@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 from django.db import models
+
 
 # Create your models here.
 
@@ -14,6 +16,22 @@ class Gift(models.Model):
 
 class GiftItem(models.Model):
 	gift=models.ForeignKey('Gift')
-	img=models.ImageField(width_field=480,verbose_name='广告页')
-
+	title=models.CharField(max_length=50,verbose_name='标题')
+	img=models.ImageField(verbose_name='广告页')
 	img_url=models.URLField(max_length=100,verbose_name='促销链接')
+	reg_user=models.BooleanField(default=False,verbose_name='注册限制')
+	def __unicode__(self):
+        	return self.title
+	class Meta:
+        	verbose_name = "促销广告"
+
+class GiftReg(models.Model):
+	gift=models.ForeignKey('GiftItem')
+	user=models.ForeignKey('register.User')
+	date=models.DateTimeField(auto_now=True)
+
+        def __unicode__(self):
+                return self.gift
+        class Meta:
+                verbose_name = "礼品登记"
+	
