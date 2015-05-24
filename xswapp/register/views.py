@@ -1,10 +1,27 @@
 # -*- coding: utf-8 -*-
-
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render,get_object_or_404
+from django.http import HttpResponse,Http404
 from .models import AsAreas
-
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json
+import hashlib
+
+def auth_check(name,passwd):
+	try:
+		print passwd
+		print name
+		cur_user=User.objects.get(username=name)
+	       	print cur_user
+	        check_passwd=hashlib.md5(passwd.encode('utf-8')).hexdigest()	
+		user_passwd=cur_User.password
+		if user_passwd==check_passwd:
+			return True
+		else:
+			return False
+		
+	except User.DoesNotExist:
+		raise Http404('用户不存在')
+	
 
 # Create your views here.
 def regParent(request):
@@ -15,9 +32,28 @@ def regTeacher(request):
 
 	return HttpResponse('')
 
+@csrf_exempt
 def login(request):
-	
-	return HttpResponse('')
+        if request.method=='POST':
+                dict={}
+                response_data = json.loads(request.body)
+                username=response_data['username']
+                password=response_data['password']
+                user_checked=auth_check(username,password)
+    #            user_checked=True
+                print user_checked
+                
+                if user_checked :
+                        dict['checked']=1
+                        dict['username']=username
+                        dict['password']=password
+
+                        return HttpResponse(json.dumps(dict,ensure_ascii=False,indent=4),content_type='application/json' )
+                else:
+                        dict['checked']=0
+                        return HttpResponse(json.dumps(dict,ensure_ascii=False,indent=4),content_type='application/json' )
+        else:
+                return HttpResponse(0)
 
 def question(request):
 
@@ -30,6 +66,19 @@ def answer(request):
 def update(request):
 
 	return HttpResponse('')
+
+@csrf_exempt
+def test(request):
+	dict={}
+	print request.body
+	if request.method=='POST':
+		response_data = json.loads(request.body)
+		print response_data
+	dict['name']='cheng'
+	dict['passwd']='passwd'
+
+	return HttpResponse(json.dumps(dict,ensure_ascii=False,indent=4) ,content_type='application/json' )
+
 
 
 def getAreaJson(request):

@@ -11,4 +11,6 @@ urlpatterns=[
 	url(r'^question/$',views.question,name='question'),
 	url(r'^question/answer/$',views.answer,name='answer'),
 	url(r'^update/$',views.update,name='update'),
+
+	url(r'^test/$',views.test,name='test'),
 ]

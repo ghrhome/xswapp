@@ -3,11 +3,11 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 #from django.template import RequestContext, loader
 from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
-from .models import Catelog,Product,
+from .models import Catelog,Product
 
 # Create your views here.
 
-def prodcut_all(request):
+def products_all(request):
 
         return HttpResponse('')
 

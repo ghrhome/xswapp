@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 from django.core.mail import send_mail
 
-def snedmail(request,ppt_id):
+def sendmail(request,ppt_id):
 	#get mail ()
 	return HttpResponse('')
 
