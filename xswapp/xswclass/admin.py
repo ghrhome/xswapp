@@ -3,6 +3,13 @@ from django.contrib import admin
 from .models import ClassName,ClassPage
 # Register your models here.
 
-admin.site.register(ClassName)
+class ClassPageInline(admin.StackedInline):
+	model=ClassPage
+	extra=6
+
+class ClassNameAdmin(admin.ModelAdmin):
+	inlines=[ClassPageInline]
+
+admin.site.register(ClassName,ClassNameAdmin)
 
 admin.site.register(ClassPage)

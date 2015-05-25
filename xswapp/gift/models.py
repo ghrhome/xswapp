@@ -29,7 +29,7 @@ class GiftReg(models.Model):
 	gift=models.ForeignKey('GiftItem')
 	user=models.ForeignKey('register.User')
 	date=models.DateTimeField(auto_now=True)
-
+	received=models.BooleanField(default=False,verbose_name='已领取')
         def __unicode__(self):
                 return self.gift
         class Meta:

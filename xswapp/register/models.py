@@ -52,14 +52,14 @@ class User(models.Model):
         (PARENT, '家长'),
         (TEACHER, '教师'),
     )
-    username = models.CharField(max_length=50, verbose_name="用户名")
-    phone = models.CharField(max_length=11, verbose_name="手机号码")
+    username = models.CharField(max_length=50, verbose_name="用户名",unique=True)
+    phone = models.CharField(max_length=11, verbose_name="手机号码",unique=True)
     password = models.CharField(max_length=50, verbose_name="密码")
     user_type = models.CharField(max_length=30, choices=USER_TYPE, default=PARENT, verbose_name="用户类型")
     reg_date = models.DateTimeField(auto_now_add=True, editable=False)
 
     def __unicode__(self):
-        return self.download_title
+        return self.username
 
     class Meta:
         verbose_name = "用户"
@@ -101,7 +101,7 @@ class UserParent(models.Model):
     relation = models.CharField(max_length=20, choices=RELATION, verbose_name='宝贝关系')
 
     def __unicode__(self):
-        return self.user
+        return self.real_name
 
     class Meta:
         verbose_name = "家长"
@@ -125,7 +125,7 @@ class UserTeacher(models.Model):
     grade = models.CharField(max_length=10, blank=True, verbose_name='任教年级')
     school = models.CharField(max_length=100, blank=True, verbose_name='学校名称 ')
     def __unicode__(self):
-        return self.user
+        return self.real_name
 
     class Meta:
         verbose_name = "老师"
@@ -135,6 +135,7 @@ class Question(models.Model):
     question = models.CharField(max_length=500, verbose_name='用户意见')
     user = models.ForeignKey('User')
     date = models.DateTimeField(auto_now_add=True,verbose_name='日期')
+    answered=models.BooleanField(default=False,verbose_name='已解决')
     def __unicode__(self):
         return self.question
 
@@ -148,7 +149,7 @@ class Answer(models.Model):
     date = models.DateTimeField(auto_now_add=True, verbose_name='回复日期')
 
     def __unicode__(self):
-        return self.question
+        return self.answer
 
     class Meta:
         verbose_name = "意见回复"

@@ -16,6 +16,9 @@ class Product(models.Model):
 	SHOPURL_YHD=''
 	SHOPURL_JD=''
 	product_name=models.CharField(max_length=50,verbose_name='产品名称')
+	background_color=models.CharField(max_length=20,verbose_name='背景颜色',default='#c5e1eb')
+	sort_id=models.IntegerField(verbose_name='商品排序',default=1,blank=True)
+	
 	thumb_nail=models.ImageField(verbose_name='缩略图')
 	title_img=models.ImageField(verbose_name='产品名称图片')
 	shop_url_tmall=models.URLField(max_length=200,verbose_name='天猫购买链接',default=SHOPURL_TMALL,blank=True)

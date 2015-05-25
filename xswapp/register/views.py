@@ -2,23 +2,20 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 from .models import AsAreas
-from register.models import User
+from register.models import Province, City, Area, User, UserParent, UserTeacher, Question, Answer
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-import json
-import hashlib
+import json,datetime,hashlib
 
 
 def auth_check(name, passwd):
     try:
-        print passwd
-        print name
-	md5=hashlib.md5()
-	md5.update(passwd)
-        check_passwd=md5.hexdigest()
-        print check_passwd
+        check_passwd = hashlib.md5().update(passwd).hexdigest()
+        cur_user = User.objects.get(username=name)
+        print cur_user
+        md5 = hashlib.md5()
+        md5.update(passwd)
 
-	cur_user = User.objects.get(username=name)
-        user_passwd = cur_user.password
+        user_passwd = md5.hexdigest()
         if user_passwd == check_passwd:
             return True
         else:
@@ -29,13 +26,119 @@ def auth_check(name, passwd):
 
 
 # Create your views here.
-def regParent(request):
-    return HttpResponse('')
+@csrf_exempt
+def reg_parent(request):
+    dict = {}
 
+    if request.method == 'POST':
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        password = response_data['password']
+        usertype = 'parent'
+        phone = response_data['phone']
+        real_name = response_data['real_name']
+        baby_sex = response_data['baby_sex']
+        baby_name = response_data['baby_name']
+        baby_birth = response_data['baby_birth']
+        relation = response_data['relation']
+        loc_province = response_data['loc_province']
+        loc_city = response_data['loc_city']
+        loc_area = response_data['loc_area']
+        loc_detail = response_data['loc_detail']
+        school = response_data['school']
+        grade = response_data['grade']
+        # save成功后--改成True
+        saved_done = False
+        try:
+            if (len(User.objects.filter(username=username))>0):
+                return HttpResponse(-2)
+            if (len(User.objects.filter(phone=phone))>0 ):
+                return HttpResponse(-2)
 
-def regTeacher(request):
-    return HttpResponse('')
+            md5 = hashlib.md5()
+            md5.update(password)
+            pass_word = md5.hexdigest()
 
+            new_user = User(username=username, user_type=usertype, password=pass_word, phone=phone)
+            new_user.save()
+
+            babyBirth_date = baby_birth.split('-')
+            babyBirth = datetime.date(int(babyBirth_date[0]), int(babyBirth_date[1]), int(babyBirth_date[2]))
+
+            user_parent = UserParent(user_id=new_user.id, real_name=real_name, baby_sex=baby_sex, baby_name=baby_name,
+                                     baby_birth=babyBirth, relation=relation,
+                                     loc_province_id=loc_province,
+                                     loc_city_id=loc_city, loc_area_id=loc_area,
+                                     loc_detail=loc_detail, school=school, grade=grade)
+            user_parent.save()
+
+            saved_done = True
+        except Exception:
+            return HttpResponse(-1)
+
+        if saved_done:
+            dict['saved'] = 1
+            # dict['username'] = username
+            # dict['password'] = password
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+        else:
+            dict['saved'] = 0
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+    else:
+        return HttpResponse(0)
+
+@csrf_exempt
+def reg_teacher(request):
+    dict = {}
+    if request.method == 'POST':
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        password = response_data['password']
+        usertype = 'teacher'
+        phone = response_data['phone']
+        gender = response_data['gender']
+        real_name = response_data['real_name']
+        loc_province = response_data['loc_province']
+        loc_city = response_data['loc_city']
+        loc_area = response_data['loc_area']
+        loc_detail = response_data['loc_detail']
+        school = response_data['school']
+        grade = response_data['grade']
+        # save成功后--改成True
+        saved_done = False
+        try:
+            if (len(User.objects.filter(username=username))>0 ):
+                return HttpResponse(-2)
+            if (len(User.objects.filter(phone=phone))>0 ):
+                return HttpResponse(-3)
+            md5 = hashlib.md5()
+            md5.update(password)
+            pass_word = md5.hexdigest()
+            new_user = User(username=username, user_type=usertype, password=pass_word, phone=phone)
+            new_user.save()
+
+            user_teacher = UserTeacher(user_id=new_user.id, gender=gender, real_name=real_name,
+                                       loc_province_id=loc_province,
+                                       loc_city_id=loc_city, loc_area_id=loc_area,
+                                       loc_detail=loc_detail, school=school, grade=grade)
+            user_teacher.save()
+
+            saved_done = True
+        except Exception:
+            return HttpResponse(-1)
+
+        if saved_done:
+            dict['saved'] = 1
+            # dict['username'] = username
+            # dict['password'] = password
+
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+        else:
+            dict['saved'] = 0
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+    else:
+        return HttpResponse(0)
 
 @csrf_exempt
 def login(request):
@@ -43,14 +146,17 @@ def login(request):
         dict = {}
         response_data = json.loads(request.body)
         username = response_data['username']
+        if (len(User.objects.filter(username=username)) == 1):
+            return HttpResponse(-1)  # 用户已经注册
         password = response_data['password']
-        user_checked=auth_check(username,password)
-#        user_checked = True
+        user_checked = auth_check(username, password)
+        # user_checked = True
+        print user_checked
 
         if user_checked:
             dict['checked'] = 1
-            dict['username'] = username
-            dict['password'] = password
+            # dict['username'] = username
+            # dict['password'] = password
 
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         else:
@@ -60,16 +166,189 @@ def login(request):
         return HttpResponse(0)
 
 
+@csrf_exempt
 def question(request):
-    return HttpResponse('')
+    if request.method == 'POST':
+        dict = {}
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        question = response_data['question']
+        if (len(User.objects.filter(username=username)) == 0):
+            return HttpResponse(-1)  # 用户未注册
+        try:
+            user = User.objects.filter(username=username)[0]
+            new_question = Question(user_id=user.id, question=question)
+            new_question.save()
+            dict['saved'] = 1
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+        except Exception:
+            dict['saved'] = 0
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+    else:
+        return HttpResponse(0)
 
 
+@csrf_exempt
 def answer(request):
-    return HttpResponse('')
+    if request.method == 'POST':
+        dict = {}
+        response_data = json.loads(request.body)
+        username = response_data['username']
+
+        if (len(User.objects.filter(username=username)) == 0):
+            return HttpResponse(-1)  # 用户未注册
+
+        cur_user = User.objects.get(username=username)
+        questions = Question.objects.filter(user_id=cur_user.id)
+        dict['questions'] = []
+        for question in questions:
+            answers = Answer.objects.filter(question=question)
+            answers_dict = {}
+            answers_dict['question'] = question.question
+            answers_dict['answers'] = []
+            if (len(answers) == 0):
+                break
+            for answer in answers:
+                answers_dict['answers'].append(answer.answer)
+            dict['questions'].append(answers_dict)
+
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+    else:
+        return HttpResponse(0)
 
 
-def update(request):
-    return HttpResponse('')
+@csrf_exempt
+def update_parent(request):
+    if request.method == 'POST':
+        dict = {}
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        password = response_data['password']
+        usertype = 'parent'
+        phone = response_data['phone']
+
+        real_name = response_data['real_name']
+        baby_sex = response_data['baby_sex']
+        baby_name = response_data['baby_name']
+        baby_birth = response_data['baby_birth']
+        relation = response_data['relation']
+        loc_province = response_data['loc_province']
+        loc_city = response_data['loc_city']
+        loc_area = response_data['loc_area']
+        loc_detail = response_data['loc_detail']
+        school = response_data['school']
+        grade = response_data['grade']
+        # save成功后--改成True
+        saved_done = False
+        try:
+            if (len(User.objects.filter(username=username)) > 0):
+                return HttpResponse(-1)  # 用户未注册
+
+            user_checked = auth_check(username, password)
+
+            if user_checked:
+                user = User.objects.get(username=username)
+
+                md5 = hashlib.md5()
+                md5.update(password)
+                user_passwd = md5.hexdigest()
+
+                user.password = user_passwd
+                user.phone = phone
+
+                babyBirth_date = baby_birth.split('-')
+                babyBirth = datetime.date(int(babyBirth_date[0]), int(babyBirth_date[1]), int(babyBirth_date[2]))
+
+                user_parent = user.userparent_set.all()[0]
+                user_parent = UserParent(user_id=user.id, real_name=real_name, baby_sex=baby_sex, baby_name=baby_name,
+                                     baby_birth=babyBirth, relation=relation,
+                                     loc_province_id=loc_province,
+                                     loc_city_id=loc_city, loc_area_id=loc_area,
+                                     loc_detail=loc_detail, school=school, grade=grade)
+                user_parent.save()
+
+                saved_done = True
+
+        except Exception:
+            return HttpResponse(0)
+
+        if saved_done:
+            dict['saved'] = 1
+            # dict['username'] = username
+            # dict['password'] = password
+
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+        else:
+            dict['saved'] = 0
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+
+    else:
+        return HttpResponse(0)
+
+
+@csrf_exempt
+def update_teacher(request):
+    if request.method == 'POST':
+        dict = {}
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        password = response_data['password']
+        usertype = 'teacher'
+        phone = response_data['phone']
+        gender = response_data['gender']
+        real_name = response_data['real_name']
+        loc_province = response_data['loc_province']
+        loc_city = response_data['loc_city']
+        loc_area = response_data['loc_area']
+        loc_detail = response_data['loc_detail']
+        school = response_data['school']
+        grade = response_data['grade']
+        # save成功后--改成True
+        saved_done = False
+
+        try:
+            if (len(User.objects.filter(username=username)) == 0):
+                return HttpResponse(-1)  # 用户未注册
+
+            user_checked = auth_check(username, password)
+
+            if user_checked:
+                user = User.objects.get(username=username)
+
+                md5 = hashlib.md5()
+                md5.update(password)
+                user_passwd = md5.hexdigest()
+
+                user.password = user_passwd
+                user.phone = phone
+
+                user_teacher = user.userteacher_set.all()[0]
+                user_teacher = UserTeacher(user_id=user.id, gender=gender, real_name=real_name,
+                                           loc_province_id=loc_province,
+                                           loc_city_id=loc_city, loc_area_id=loc_area,
+                                           loc_detail=loc_detail, school=school, grade=grade)
+                user_teacher.save()
+
+                saved_done = True
+
+        except Exception:
+            return HttpResponse(0)
+
+        if saved_done:
+            dict['saved'] = 1
+            # dict['username'] = username
+            # dict['password'] = password
+
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+        else:
+            dict['saved'] = 0
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+
+    else:
+        return HttpResponse(0)
 
 
 @csrf_exempt
@@ -79,12 +358,14 @@ def test(request):
     if request.method == 'POST':
         response_data = json.loads(request.body)
         print response_data
-    dict['name'] = 'cheng'
-    dict['passwd'] = 'passwd'
+        dict['name'] = 'cheng'
+        dict['passwd'] = 'passwd'
 
     return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
+'''
+@csrf_exempt
 def getAreaJson(request):
     response_data = []
     provinces = AsAreas.objects.filter(parent_id=0)
@@ -121,8 +402,8 @@ def getAreaJson(request):
             p_dict['cities'].append(c_dict)
         response_data.append(p_dict)
 
-    #	return HttpResponse(json.dumps(response_data), content_type="application
+    # return HttpResponse(json.dumps(response_data), content_type="application
     #/json")
     return HttpResponse(json.dumps(response_data, ensure_ascii=False, indent=4), content_type='application/json')
 
-
+'''
