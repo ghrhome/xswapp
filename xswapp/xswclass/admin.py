@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
-from .models import ClassName,ClassPage
+from .models import PPTName,PPTPage
 # Register your models here.
 
-class ClassPageInline(admin.StackedInline):
-	model=ClassPage
+class PPTPageInline(admin.StackedInline):
+	model=PPTPage
 	extra=6
 
-class ClassNameAdmin(admin.ModelAdmin):
-	inlines=[ClassPageInline]
+class PPTNameAdmin(admin.ModelAdmin):
+	inlines=[PPTPageInline]
 
-admin.site.register(ClassName,ClassNameAdmin)
+admin.site.register(PPTName,PPTNameAdmin)
 
-admin.site.register(ClassPage)
+admin.site.register(PPTPage)

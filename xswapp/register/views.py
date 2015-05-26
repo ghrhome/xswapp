@@ -2,19 +2,18 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 from .models import AsAreas
-from register.models import Province, City, Area, User, UserParent, UserTeacher, Question, Answer
+from .models import Province, City, Area, User, UserParent, UserTeacher, Question, Answer
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json,datetime,hashlib
 
 
 def auth_check(name, passwd):
     try:
-        check_passwd = hashlib.md5().update(passwd).hexdigest()
         cur_user = User.objects.get(username=name)
-        print cur_user
+        check_passwd=cur_user.password
+
         md5 = hashlib.md5()
         md5.update(passwd)
-
         user_passwd = md5.hexdigest()
         if user_passwd == check_passwd:
             return True
@@ -50,10 +49,14 @@ def reg_parent(request):
         # save成功后--改成True
         saved_done = False
         try:
-            if (len(User.objects.filter(username=username))>0):
-                return HttpResponse(-2)
-            if (len(User.objects.filter(phone=phone))>0 ):
-                return HttpResponse(-2)
+            if (User.objects.filter(username=username).count() > 0):
+                dict['errorcode']= -1
+                dict['error']= '用户名已存在'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+            if (User.objects.filter(phone=phone).count() > 0 ):
+                dict['errorcode']= -1
+                dict['error']= '手机已注册'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
             md5 = hashlib.md5()
             md5.update(password)
@@ -74,19 +77,24 @@ def reg_parent(request):
 
             saved_done = True
         except Exception:
-            return HttpResponse(-1)
+            dict['errorcode']= -1
+            dict['error']= '注册不成功，请重试'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
         if saved_done:
             dict['saved'] = 1
-            # dict['username'] = username
-            # dict['password'] = password
+            dict['errorcode']=0
+            dict['error']= ''
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         else:
-            dict['saved'] = 0
+            dict['errorcode']= -1
+            dict['error']= '注册不成功，请重试'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
     else:
-        return HttpResponse(0)
+        dict['errorcode']= -1
+        dict['error']= '请应用内注册'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 @csrf_exempt
 def reg_teacher(request):
@@ -109,9 +117,13 @@ def reg_teacher(request):
         saved_done = False
         try:
             if (len(User.objects.filter(username=username))>0 ):
-                return HttpResponse(-2)
+                dict['errorcode']= -1
+                dict['error']= '用户名已存在'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
             if (len(User.objects.filter(phone=phone))>0 ):
-                return HttpResponse(-3)
+                dict['errorcode']= -1
+                dict['error']= '手机已注册'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
             md5 = hashlib.md5()
             md5.update(password)
             pass_word = md5.hexdigest()
@@ -126,19 +138,23 @@ def reg_teacher(request):
 
             saved_done = True
         except Exception:
-            return HttpResponse(-1)
+            dict['errorcode']= -1
+            dict['error']= '注册不成功，请重试'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
         if saved_done:
             dict['saved'] = 1
-            # dict['username'] = username
-            # dict['password'] = password
-
+            dict['errorcode']=0
+            dict['error']= ''
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         else:
-            dict['saved'] = 0
+            dict['errorcode']= -1
+            dict['error']= '注册不成功，请重试'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
     else:
-        return HttpResponse(0)
+        dict['errorcode']= -1
+        dict['error']= '请应用内注册'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 @csrf_exempt
 def login(request):
@@ -146,24 +162,24 @@ def login(request):
         dict = {}
         response_data = json.loads(request.body)
         username = response_data['username']
-        if (len(User.objects.filter(username=username)) == 1):
+        if User.objects.filter(username=username).count() == 1:
             return HttpResponse(-1)  # 用户已经注册
         password = response_data['password']
         user_checked = auth_check(username, password)
         # user_checked = True
-        print user_checked
-
         if user_checked:
             dict['checked'] = 1
-            # dict['username'] = username
-            # dict['password'] = password
-
+            dict['errorcode']=0
+            dict['error']=''
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         else:
-            dict['checked'] = 0
+            dict['errorcode']= -1
+            dict['error']= '请检查用户名密码'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
     else:
-        return HttpResponse(0)
+       dict['errorcode']= -1
+       dict['error']= '登录错误，请重试'
+       return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
 @csrf_exempt
@@ -173,19 +189,26 @@ def question(request):
         response_data = json.loads(request.body)
         username = response_data['username']
         question = response_data['question']
-        if (len(User.objects.filter(username=username)) == 0):
-            return HttpResponse(-1)  # 用户未注册
+        if (User.objects.filter(username=username).count() == 0):
+            dict['errorcode']= -1
+            dict['error']= '请先注册'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         try:
             user = User.objects.filter(username=username)[0]
             new_question = Question(user_id=user.id, question=question)
             new_question.save()
             dict['saved'] = 1
+            dict['errorcode']=0
+            dict['error']=''
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         except Exception:
-            dict['saved'] = 0
+            dict['errorcode']= -1
+            dict['error']= '提交失败，请重试'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
     else:
-        return HttpResponse(0)
+        dict['errorcode']= -1
+        dict['error']= '请应用内提交'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
 @csrf_exempt
@@ -196,7 +219,9 @@ def answer(request):
         username = response_data['username']
 
         if (len(User.objects.filter(username=username)) == 0):
-            return HttpResponse(-1)  # 用户未注册
+            dict['errorcode']= -1
+            dict['error']= '请先注册'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
         cur_user = User.objects.get(username=username)
         questions = Question.objects.filter(user_id=cur_user.id)
@@ -211,11 +236,14 @@ def answer(request):
             for answer in answers:
                 answers_dict['answers'].append(answer.answer)
             dict['questions'].append(answers_dict)
-
+        dict['errorcode']=0
+        dict['error']=''
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
     else:
-        return HttpResponse(0)
+        dict['errorcode']= -1
+        dict['error']= '请应用内提交'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
 @csrf_exempt
@@ -242,10 +270,15 @@ def update_parent(request):
         # save成功后--改成True
         saved_done = False
         try:
-            if (len(User.objects.filter(username=username)) > 0):
-                return HttpResponse(-1)  # 用户未注册
+            if (User.objects.filter(username=username).count() > 0):
+                dict['errorcode']= -1
+                dict['error']= '请先注册'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-            user_checked = auth_check(username, password)
+            md5 = hashlib.md5()
+            md5.update(password)
+            pass_word = md5.hexdigest()
+            user_checked = auth_check(username, pass_word)
 
             if user_checked:
                 user = User.objects.get(username=username)
@@ -271,21 +304,26 @@ def update_parent(request):
                 saved_done = True
 
         except Exception:
-            return HttpResponse(0)
+            dict['errorcode']= -1
+            dict['error']= '保存失败'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
         if saved_done:
             dict['saved'] = 1
-            # dict['username'] = username
-            # dict['password'] = password
-
+            dict['errorcode']= 0
+            dict['error']= ''
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
         else:
-            dict['saved'] = 0
+            dict['errorcode']= -1
+            dict['error']= '保存失败'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
     else:
-        return HttpResponse(0)
+        dict['errorcode']= -1
+        dict['error']= '请应用内更改'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
 @csrf_exempt
@@ -310,9 +348,14 @@ def update_teacher(request):
 
         try:
             if (len(User.objects.filter(username=username)) == 0):
-                return HttpResponse(-1)  # 用户未注册
+                dict['errorcode']= -1
+                dict['error']= '请先注册'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-            user_checked = auth_check(username, password)
+            md5 = hashlib.md5()
+            md5.update(password)
+            pass_word = md5.hexdigest()
+            user_checked = auth_check(username, pass_word)
 
             if user_checked:
                 user = User.objects.get(username=username)
@@ -334,21 +377,27 @@ def update_teacher(request):
                 saved_done = True
 
         except Exception:
-            return HttpResponse(0)
+            dict['errorcode']= -1
+            dict['error']= '保存失败'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
         if saved_done:
             dict['saved'] = 1
-            # dict['username'] = username
-            # dict['password'] = password
-
+            dict['errorcode']= 0
+            dict['error']= ''
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
         else:
-            dict['saved'] = 0
+            dict['errorcode']= -1
+            dict['error']= '保存失败'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
     else:
-        return HttpResponse(0)
+        dict['errorcode']= -1
+        dict['error']= '请应用内更改'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
 
 
 @csrf_exempt
@@ -358,6 +407,8 @@ def test(request):
     if request.method == 'POST':
         response_data = json.loads(request.body)
         print response_data
+        dict['errorcode']= 0
+        dict['error']= ''
         dict['name'] = 'cheng'
         dict['passwd'] = 'passwd'
 
