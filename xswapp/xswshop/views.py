@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404,HttpResponseRedirect
 from .models import Catelog, Product
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json
@@ -27,11 +27,17 @@ def products_all(request):
             p['catelog'] = product.catelog.id
             p['product_img'] = product.product_img.url
             p['product_detail'] = product.product_detail
-            p['relation_products'] = []
-            rel_pros = product.relation_product.all()
+ #             p['relation_products'] = []
+            p['bottom_left_product']=product.bottom_left_product.url
+            p['bottom_left_link']=product.bottom_left_link
+            p['bottom_right_product']=product.bottom_right_product.url
+            p['bottom_right_link']=product.bottom_right_link
+            p['share_info']=product.share_info
 
-            for relation_product in rel_pros:
-                p['relation_products'].append(relation_product)
+#           rel_pros = product.relation_product.all()
+
+#            for relation_product in rel_pros:
+#               p['relation_products'].append(relation_product.id)
 
             dict['result'].append(p)
 
@@ -62,11 +68,17 @@ def getproduct(request, product_id):
         p['catelog'] = product.catelog.id
         p['product_img'] = product.product_img.url
         p['product_detail'] = product.product_detail
-        p['relation_products'] = []
-        rel_pros = product.relation_product.all()
+        p['bottom_left_product']=product.bottom_left_product.url
+        p['bottom_left_link']=product.bottom_left_link
+        p['bottom_right_product']=product.bottom_right_product.url
+        p['bottom_right_link']=product.bottom_right_link
+        p['share_info']=product.share_info
 
-        for relation_product in rel_pros:
-            p['relation_products'].append(relation_product)
+#        p['relation_products'] = []
+#        rel_pros = product.relation_product.all()
+
+#        for relation_product in rel_pros:
+#            p['relation_products'].append(relation_product)
 
         dict['result'].append(p)
         dict['errorcode'] = 0
@@ -79,7 +91,7 @@ def getproduct(request, product_id):
 
 
 @csrf_exempt
-def shop_update(request, cur_version):
+def product_update(request, cur_version):
     dict = {}
     try:
         products_count = Product.objects.all().count()
@@ -109,3 +121,9 @@ def shop_update(request, cur_version):
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
+
+
+@csrf_exempt
+def product_share(request, product_id):
+
+    return HttpResponseRedirect("http://www.lionchina.cn/")

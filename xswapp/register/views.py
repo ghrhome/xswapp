@@ -64,10 +64,10 @@ def reg_parent(request):
 
             new_user = User(username=username, user_type=usertype, password=pass_word, phone=phone)
             new_user.save()
-
+        #    print baby_birth
             babyBirth_date = baby_birth.split('-')
             babyBirth = datetime.date(int(babyBirth_date[0]), int(babyBirth_date[1]), int(babyBirth_date[2]))
-
+		
             user_parent = UserParent(user_id=new_user.id, real_name=real_name, baby_sex=baby_sex, baby_name=baby_name,
                                      baby_birth=babyBirth, relation=relation,
                                      loc_province_id=loc_province,
@@ -79,6 +79,7 @@ def reg_parent(request):
         except Exception:
             dict['errorcode']= -1
             dict['error']= '注册不成功，请重试'
+	   
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
         if saved_done:
@@ -96,7 +97,7 @@ def reg_parent(request):
         dict['error']= '请应用内注册'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-@csrf_exempt
+
 def reg_teacher(request):
     dict = {}
     if request.method == 'POST':
@@ -162,25 +163,69 @@ def login(request):
         dict = {}
         response_data = json.loads(request.body)
         username = response_data['username']
-        if User.objects.filter(username=username).count() == 1:
-            return HttpResponse(-1)  # 用户已经注册
+        if User.objects.filter(username=username).count() == 0:
+            dict['errorcode']=-1
+            dict['error']='用户不存在'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4),content_type='application/json')
+        # return HttpResponse(-1)  # 用户已经注册
         password = response_data['password']
         user_checked = auth_check(username, password)
         # user_checked = True
         if user_checked:
-            dict['checked'] = 1
-            dict['errorcode']=0
-            dict['error']=''
+
+            cur_result={}
+            cur_result['checked'] = 1
+            cur_user = User.objects.filter(username=username)[0]
+            cur_result['username'] = cur_user.username
+            cur_result['usertype'] = cur_user.user_type
+            cur_result['phone'] = cur_user.phone
+            if cur_user.user_type == 'teacher':
+                cur_teacher = cur_user.userteacher_set.all()[0]
+
+                cur_result['user_id'] = cur_user.id
+                cur_result['gender'] = cur_teacher.gender
+                cur_result['real_name'] = cur_teacher.real_name
+                cur_result['loc_province'] = cur_teacher.loc_province_id
+                cur_result['loc_city'] = cur_teacher.loc_city_id
+                cur_result['loc_area'] = cur_teacher.loc_area_id
+                cur_result['loc_detail'] = cur_teacher.loc_detail
+                cur_result['school'] = cur_teacher.school
+                cur_result['grade'] = cur_teacher.grade
+
+            #elif cur_user.usertype == 'parent':
+            else:
+                #usertype== parent
+
+                cur_parent = cur_user.userparent_set.all()[0]
+                cur_baby_birth = str(cur_parent.baby_birth.year) + '-' + str(cur_parent.baby_birth.month) + '-' + str(
+                cur_parent.baby_birth.day)
+                cur_result['user_id'] = cur_user.id
+
+                cur_result['real_name'] = cur_parent.real_name
+                cur_result['baby_sex'] = cur_parent.baby_sex
+                cur_result['baby_name'] = cur_parent.baby_name
+                cur_result['baby_birth'] = cur_baby_birth
+                cur_result['relation'] = cur_parent.relation
+                cur_result['loc_province'] = cur_parent.loc_province_id
+                cur_result['loc_city'] = cur_parent.loc_city_id
+                cur_result['loc_area'] = cur_parent.loc_area_id
+                cur_result['loc_detail'] = cur_parent.loc_detail
+                cur_result['school'] = cur_parent.school
+                cur_result['grade'] = cur_parent.grade
+
+
+            dict['errorcode'] = 0
+            dict['error'] = ''
+            dict['result']=cur_result
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         else:
-            dict['errorcode']= -1
-            dict['error']= '请检查用户名密码'
+            dict['errorcode'] = -1
+            dict['error'] = '请检查用户名密码'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
     else:
-       dict['errorcode']= -1
-       dict['error']= '登录错误，请重试'
-       return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
-
+        dict['errorcode'] = -1
+        dict['error'] = '登录错误，请重试'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 @csrf_exempt
 def question(request):
@@ -225,7 +270,7 @@ def answer(request):
 
         cur_user = User.objects.get(username=username)
         questions = Question.objects.filter(user_id=cur_user.id)
-        dict['questions'] = []
+        dict['questions'] = questions
         for question in questions:
             answers = Answer.objects.filter(question=question)
             answers_dict = {}
@@ -270,17 +315,13 @@ def update_parent(request):
         # save成功后--改成True
         saved_done = False
         try:
-            if (User.objects.filter(username=username).count() > 0):
+            if (User.objects.filter(username=username).count() == 0):
                 dict['errorcode']= -1
                 dict['error']= '请先注册'
                 return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-            md5 = hashlib.md5()
-            md5.update(password)
-            pass_word = md5.hexdigest()
-            user_checked = auth_check(username, pass_word)
 
-            if user_checked:
+            if True:
                 user = User.objects.get(username=username)
 
                 md5 = hashlib.md5()
@@ -289,7 +330,7 @@ def update_parent(request):
 
                 user.password = user_passwd
                 user.phone = phone
-
+                user.save()
                 babyBirth_date = baby_birth.split('-')
                 babyBirth = datetime.date(int(babyBirth_date[0]), int(babyBirth_date[1]), int(babyBirth_date[2]))
 
@@ -305,7 +346,7 @@ def update_parent(request):
 
         except Exception:
             dict['errorcode']= -1
-            dict['error']= '保存失败'
+            dict['error']= '网络出错，请重试'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
         if saved_done:
@@ -352,12 +393,7 @@ def update_teacher(request):
                 dict['error']= '请先注册'
                 return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-            md5 = hashlib.md5()
-            md5.update(password)
-            pass_word = md5.hexdigest()
-            user_checked = auth_check(username, pass_word)
-
-            if user_checked:
+            if True:
                 user = User.objects.get(username=username)
 
                 md5 = hashlib.md5()
@@ -366,7 +402,7 @@ def update_teacher(request):
 
                 user.password = user_passwd
                 user.phone = phone
-
+                user.save()
                 user_teacher = user.userteacher_set.all()[0]
                 user_teacher = UserTeacher(user_id=user.id, gender=gender, real_name=real_name,
                                            loc_province_id=loc_province,
@@ -397,6 +433,115 @@ def update_teacher(request):
         dict['errorcode']= -1
         dict['error']= '请应用内更改'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+@csrf_exempt
+def register_check(request):
+    dict = {}
+    if request.method == 'POST':
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        phone = response_data['phone']
+        try:
+            if (User.objects.filter(username=username).count() > 0):
+                dict['errorcode']= -1
+                dict['error']= '用户名已经存在'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+            elif (User.objects.filter(phone=phone).count() > 0):
+                dict['errorcode']= -1
+                dict['error']= '手机号码已经注册'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+            else:
+                dict['result']=''
+                dict['errorcode']= 0
+                dict['error']= ''
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+        except Exception:
+
+            dict['errorcode']= -1
+            dict['error']= '服务不可用，请重试'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+    else:
+        dict['errorcode']= -1
+        dict['error']= '请应用内注册'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+
+@csrf_exempt
+def passwd_lost(request):
+    dict = {}
+    if request.method == 'POST':
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        phone = response_data['phone']
+        try:
+            if (User.objects.filter(username=username).count() == 0):
+                dict['errorcode']= -1
+                dict['error']= '用户名不存在'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+            elif (User.objects.filter(phone=phone).count() == 0):
+                dict['errorcode']= -1
+                dict['error']= '手机号码不存在'
+                return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+            else:
+                user=User.objects.filter(username=username)[0]
+                if user.phone == phone:
+                    dict['result']=''
+                    dict['errorcode']= 0
+                    dict['error']= ''
+                    return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+                else:
+                    dict['errorcode']= -1
+                    dict['error']= '用户名或手机不匹配'
+                    return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+        except Exception:
+
+            dict['errorcode']= -1
+            dict['error']= '服务不可用，请重试'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+    else:
+        dict['errorcode']= -1
+        dict['error']= '请应用内操作'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+@csrf_exempt
+def passwd_reset(request):
+    dict = {}
+    if request.method == 'POST':
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        phone = response_data['phone']
+        password=response_data['password']
+        try:
+            user = User.objects.get(username=username)
+
+            md5 = hashlib.md5()
+            md5.update(password)
+            user_passwd = md5.hexdigest()
+            user.password = user_passwd
+            user.save()
+
+            dict['result']='更改成功'
+            dict['errorcode']= 0
+            dict['error']= ''
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+        except Exception:
+
+            dict['errorcode']= -1
+            dict['error']= '服务不可用，请重试'
+            return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+    else:
+        dict['errorcode']= -1
+        dict['error']= '请应用内注册'
+        return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
 
 
 

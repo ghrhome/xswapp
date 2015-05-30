@@ -12,7 +12,7 @@ def intro(request):
     dict={}
     try:
         intro_count=Intro.objects.all().count()
-        intro=Intro.objects.get(intro_count-1)
+        intro=Intro.objects.get.all()[intro_count-1]
 
         dict['intor']=intro.intro_img.url
         dict['errorcode']=0
@@ -33,7 +33,7 @@ def update(request,cur_version):
         intro_count=Intro.objects.all().count()
         if intro_count>1:
 
-            intro=Intro.objects.get(intro_count-1)
+            intro=Intro.objects.get.all()[intro_count-1]
             intro_version = intro.version
             if  intro_version > cur_version:
                 dict['result']= 1

@@ -82,3 +82,7 @@ def ppt_update(request,cur_version):
         dict['errorcode'] = -1
         dict['error'] = '暂时不可链接'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+def ppt_share(request):
+
+    return HttpResponseRedirect("http://www.lionchina.cn/")

@@ -3,14 +3,16 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render
 from .models import Maillist
 from django.core.mail import send_mail
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json
 
-def sendmail(request, ppt_id):
+@csrf_exempt
+def sendmail(request):
     dict={}
     if request.method == 'POST':
-        response_data = json.loads(request.body)
-        email = response_data['email']
         try :
+	    response_data = json.loads(request.body)
+            email = response_data['email']
             mail_list_count=Maillist.objects.all().count()
             if mail_list_count>0:
                 mail_list=Maillist.objects.all()[mail_list_count-1]

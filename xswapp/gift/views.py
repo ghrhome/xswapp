@@ -5,14 +5,15 @@ from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from .models import Gift, GiftItem, GiftReg
 from register.models import User
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json
 # Create your views here.
-
-def get_all_gift(request, gift_id):
+@csrf_exempt
+def get_all_gift(request):
     dict = {}
     try:
-        gifts_count = Gift.object.all().count()
-        giftSet = Gift.objects.get(gifts_count - 1)
+        gifts_count = Gift.objects.all().count()
+        giftSet = Gift.objects.all()[gifts_count - 1]
 
         gift_items = giftSet.giftitem_set.all()
 
@@ -39,7 +40,7 @@ def get_all_gift(request, gift_id):
         dict['error'] = '暂时不可链接'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-
+@csrf_exempt
 def gift_update(request,cur_version):
     # 返回最新的gift_ id
     dict={}
@@ -71,11 +72,16 @@ def gift_update(request,cur_version):
         dict['error'] = '暂时不可链接'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-
-def gift_reg(request, user_id, gift_id):
+@csrf_exempt
+def gift_reg(request):
     dict={}
+    dict = {}
+    if request.method == 'POST':
+        response_data = json.loads(request.body)
+        username = response_data['username']
+        gift_id=response_data['gift_id']
     try:
-        user=User.objects.get(id=user_id)
+        user=User.objects.get(username=username)
     except Exception:
         dict['errorcode']=-1
         dict['error']='请先登录'
@@ -87,7 +93,7 @@ def gift_reg(request, user_id, gift_id):
         dict['error']='商品已下线'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
     try:
-        giftReg=GiftReg(gift_id=gift_id,user_id=user_id)
+        giftReg=GiftReg(gift_id=gift_id,user_id=user.id,user_phone=user.phone,username=user.username)
         giftReg.save()
         dict['result']='已登记'
         dict['errorcode']=-0

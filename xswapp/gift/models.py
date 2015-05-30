@@ -34,6 +34,8 @@ class GiftItem(models.Model):
 class GiftReg(models.Model):
     gift = models.ForeignKey('GiftItem')
     user = models.ForeignKey('register.User')
+    username=models.CharField(max_length='20',verbose_name='用户姓名')
+    user_phone=models.CharField(max_length="20",verbose_name='手机号码')
     date = models.DateTimeField(auto_now=True)
     received = models.BooleanField(default=False, verbose_name='已领取')
 

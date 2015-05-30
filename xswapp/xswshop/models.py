@@ -15,6 +15,7 @@ class Catelog(models.Model):
         verbose_name_plural = "产品类型"
 
 
+
 class Product(models.Model):
     SHOPURL_TMALL = 'http://lion.tmall.com/category-367325168.htm?spm=a1z10.1-b.w9154402-9436601579.6.QIgjSC'
     SHOPURL_YHD = ''
@@ -32,8 +33,13 @@ class Product(models.Model):
     product_img = models.ImageField('产品图片')
     product_detail = RichTextField()
 
-    relation_product = models.ManyToManyField('self')
-    version =models.CharField(max_length=20,verbose_name='商品版本')
+ #   relation_product = models.ManyToManyField('self')
+    bottom_left_product=models.ImageField(verbose_name='底部左侧图片',default='')
+    bottom_left_link=models.URLField(verbose_name='底部左侧链接',default=SHOPURL_JD )
+    bottom_right_product=models.ImageField(verbose_name='底部右侧图片',default='')
+    bottom_right_link=models.URLField(verbose_name='底部右侧链接',default=SHOPURL_TMALL)
+    share_info=models.CharField(max_length=200,verbose_name="分享信息",default='小狮王是由创始于1891年的日本狮王出品的，以超过120年的传承经验和领先科技，诚挚为您的孩子提供安全优质的口腔护理产品。',blank=True)
+    version =models.CharField(max_length=20,verbose_name='商品版本',default='0.0.1')
 
     def __unicode__(self):
         return self.product_name
