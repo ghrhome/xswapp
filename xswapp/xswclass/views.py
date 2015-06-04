@@ -4,9 +4,11 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from .models import PPTName,PPTPage
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json
 
 # Create your views here.
+@csrf_exempt
 def latest_ppt(request):
     dict={}
     try:
@@ -14,10 +16,10 @@ def latest_ppt(request):
         if ppt_count>0:
             ppt=PPTName.objects.all()[ppt_count-1]
             ppt_items=ppt.pptpage_set.all().order_by('sort_id')
-            dict['ppt']=[]
+            dict['result']=[]
 
             for ppt_item in ppt_items:
-                dict['ppt'].append(ppt_item.img.url)
+                dict['result'].append(ppt_item.img.url)
             dict['errorcode']=0
             dict['error']=''
 
@@ -30,17 +32,17 @@ def latest_ppt(request):
         dict['errorcode']=-1
         dict['error']='暂时无法更新'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
-
+@csrf_exempt
 def getppt(request,class_id):
     dict={}
     try:
         if class_id>0:
             ppt=PPTName.objects.get(id=class_id)
             ppt_items=ppt.pptpage_set.all().order_by('sort_id')
-            dict['ppt']=[]
+            dict['result']=[]
 
             for ppt_item in ppt_items:
-                dict['ppt'].append(ppt_item.img.url)
+                dict['result'].append(ppt_item.img.url)
             dict['errorcode']=0
             dict['error']=''
 
@@ -53,6 +55,8 @@ def getppt(request,class_id):
         dict['errorcode']=-1
         dict['error']='暂时无法更新'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
+
+@csrf_exempt
 def ppt_update(request,cur_version):
 	#返回最新的ppt_ id
     dict={}
@@ -75,7 +79,7 @@ def ppt_update(request,cur_version):
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
         else:
              dict['errorcode'] = -1
-             dict['error'] = '还没有促销信息'
+             dict['error'] = '还没有课程信息'
              return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
     except Exception:
@@ -83,6 +87,7 @@ def ppt_update(request,cur_version):
         dict['error'] = '暂时不可链接'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
+@csrf_exempt
 def ppt_share(request):
 
     return HttpResponseRedirect("http://www.lionchina.cn/")

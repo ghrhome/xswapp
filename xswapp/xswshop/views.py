@@ -69,11 +69,13 @@ def getproduct(request, product_id):
         p['product_img'] = product.product_img.url
         p['product_detail'] = product.product_detail
         p['bottom_left_product']=product.bottom_left_product.url
-        p['bottom_left_link']=product.bottom_left_link
+    #    p['bottom_left_link']=product.bottom_left_link
+        p['bottom_left_link']=''
         p['bottom_right_product']=product.bottom_right_product.url
-        p['bottom_right_link']=product.bottom_right_link
-        p['share_info']=product.share_info
-
+    #    p['bottom_right_link']=product.bottom_right_link
+        p['bottom_right_link']=''
+     #   p['share_info']=product.share_info
+        p['share_info']=''
 #        p['relation_products'] = []
 #        rel_pros = product.relation_product.all()
 

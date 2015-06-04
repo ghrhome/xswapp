@@ -14,10 +14,9 @@ def get_all_gift(request):
     try:
         gifts_count = Gift.objects.all().count()
         giftSet = Gift.objects.all()[gifts_count - 1]
-
         gift_items = giftSet.giftitem_set.all()
 
-        dict['gifts'] = []
+        dict['result'] = []
         if gift_items.count() > 0:
             for gift_item in gift_items:
                 gift = {}
@@ -26,7 +25,7 @@ def get_all_gift(request):
                 gift['img'] = gift_item.img.url
                 gift['url'] = gift_item.img_url
                 gift['reg_user'] = gift_item.reg_user
-                dict['gifts'].append(gift)
+                dict['result'].append(gift)
         else:
             dict['errorcode'] = -1
             dict['error'] = '暂时没有促销信息'
@@ -74,12 +73,12 @@ def gift_update(request,cur_version):
 
 @csrf_exempt
 def gift_reg(request):
-    dict={}
     dict = {}
     if request.method == 'POST':
         response_data = json.loads(request.body)
         username = response_data['username']
-        gift_id=response_data['gift_id']
+        gift_id=int(response_data['gift_id'])
+
     try:
         user=User.objects.get(username=username)
     except Exception:
@@ -93,11 +92,20 @@ def gift_reg(request):
         dict['error']='商品已下线'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
     try:
-        giftReg=GiftReg(gift_id=gift_id,user_id=user.id,user_phone=user.phone,username=user.username)
-        giftReg.save()
-        dict['result']='已登记'
-        dict['errorcode']=-0
-        dict['error']=''
+        #check if user has already reg for the gift
+        gift_item=GiftItem.objects.get(id=gift_id)
+        gift_check=gift_item.giftreg_set.filter(user_id=user.id)
+
+        if gift_check.count() ==0:
+            giftReg=GiftReg(gift_id=gift_id,user_id=user.id,user_phone=user.phone,username=user.username)
+            giftReg.save()
+            dict['result']='登记成功'
+            dict['errorcode']=0
+            dict['error']=''
+        else:
+            dict['result']=''
+            dict['errorcode']=-1
+            dict['error']='已经登记，不能重复申请'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
     except Exception:
         dict['errorcode'] = -1

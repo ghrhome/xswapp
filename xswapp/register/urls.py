@@ -15,5 +15,5 @@ urlpatterns = [
     url(r'^update/teacher/$', views.update_teacher, name='update_teacher'),
     url(r'^test/$', views.test, name='test'),
     url(r'^getxml/$',getxml.getxml,name='getxml'),
-
+    url(r'^getarea/$',views.getAreaJson,name='getarea'),
 ]

@@ -6,7 +6,6 @@ from .models import Province, City, Area, User, UserParent, UserTeacher, Questio
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json,datetime,hashlib
 
-
 def auth_check(name, passwd):
     try:
         cur_user = User.objects.get(username=name)
@@ -97,7 +96,7 @@ def reg_parent(request):
         dict['error']= '请应用内注册'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
-
+@csrf_exempt
 def reg_teacher(request):
     dict = {}
     if request.method == 'POST':
@@ -159,8 +158,8 @@ def reg_teacher(request):
 
 @csrf_exempt
 def login(request):
+    dict = {}
     if request.method == 'POST':
-        dict = {}
         response_data = json.loads(request.body)
         username = response_data['username']
         if User.objects.filter(username=username).count() == 0:
@@ -229,8 +228,8 @@ def login(request):
 
 @csrf_exempt
 def question(request):
+    dict = {}
     if request.method == 'POST':
-        dict = {}
         response_data = json.loads(request.body)
         username = response_data['username']
         question = response_data['question']
@@ -258,8 +257,9 @@ def question(request):
 
 @csrf_exempt
 def answer(request):
+    dict = {}
     if request.method == 'POST':
-        dict = {}
+       #dict = {}
         response_data = json.loads(request.body)
         username = response_data['username']
 
@@ -267,22 +267,25 @@ def answer(request):
             dict['errorcode']= -1
             dict['error']= '请先注册'
             return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
-
-        cur_user = User.objects.get(username=username)
-        questions = Question.objects.filter(user_id=cur_user.id)
-        dict['questions'] = questions
-        for question in questions:
-            answers = Answer.objects.filter(question=question)
-            answers_dict = {}
-            answers_dict['question'] = question.question
-            answers_dict['answers'] = []
-            if (len(answers) == 0):
-                break
-            for answer in answers:
-                answers_dict['answers'].append(answer.answer)
-            dict['questions'].append(answers_dict)
-        dict['errorcode']=0
-        dict['error']=''
+        try:
+            cur_user = User.objects.get(username=username)
+            questions = Question.objects.filter(user_id=cur_user.id)
+            dict['result'] = []
+            for question in questions:
+                answers = Answer.objects.filter(question=question)
+                answers_dict = {}
+                answers_dict['question'] = question.question
+                answers_dict['question_id']=question.id
+                answers_dict['answers'] = []
+                if (len(answers)!=0):
+                    for answer in answers:
+                        answers_dict['answers'].append(answer.answer)
+                dict['result'].append(answers_dict)
+            dict['errorcode']=0
+            dict['error']=''
+        except Exception:
+            dict['errorcode']= -1
+            dict['error']= '暂无回复'
         return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
     else:
@@ -293,8 +296,9 @@ def answer(request):
 
 @csrf_exempt
 def update_parent(request):
+    dict = {}
     if request.method == 'POST':
-        dict = {}
+
         response_data = json.loads(request.body)
         username = response_data['username']
         password = response_data['password']
@@ -335,7 +339,7 @@ def update_parent(request):
                 babyBirth = datetime.date(int(babyBirth_date[0]), int(babyBirth_date[1]), int(babyBirth_date[2]))
 
                 user_parent = user.userparent_set.all()[0]
-                user_parent = UserParent(user_id=user.id, real_name=real_name, baby_sex=baby_sex, baby_name=baby_name,
+                user_parent = UserParent(id=user_parent.id, user_id=user.id, real_name=real_name, baby_sex=baby_sex, baby_name=baby_name,
                                      baby_birth=babyBirth, relation=relation,
                                      loc_province_id=loc_province,
                                      loc_city_id=loc_city, loc_area_id=loc_area,
@@ -369,8 +373,9 @@ def update_parent(request):
 
 @csrf_exempt
 def update_teacher(request):
+    dict = {}
     if request.method == 'POST':
-        dict = {}
+
         response_data = json.loads(request.body)
         username = response_data['username']
         password = response_data['password']
@@ -404,7 +409,7 @@ def update_teacher(request):
                 user.phone = phone
                 user.save()
                 user_teacher = user.userteacher_set.all()[0]
-                user_teacher = UserTeacher(user_id=user.id, gender=gender, real_name=real_name,
+                user_teacher = UserTeacher(id=user_teacher.id,user_id=user.id, gender=gender, real_name=real_name,
                                            loc_province_id=loc_province,
                                            loc_city_id=loc_city, loc_area_id=loc_area,
                                            loc_detail=loc_detail, school=school, grade=grade)
@@ -452,8 +457,8 @@ def register_check(request):
                 dict['error']= '手机号码已经注册'
                 return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
             else:
-                dict['result']=''
-                dict['errorcode']= 0
+                dict['result']='请求失败'
+                dict['errorcode']= -1
                 dict['error']= ''
                 return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
@@ -548,10 +553,8 @@ def passwd_reset(request):
 @csrf_exempt
 def test(request):
     dict = {}
-    print request.body
     if request.method == 'POST':
         response_data = json.loads(request.body)
-        print response_data
         dict['errorcode']= 0
         dict['error']= ''
         dict['name'] = 'cheng'
@@ -560,7 +563,7 @@ def test(request):
     return HttpResponse(json.dumps(dict, ensure_ascii=False, indent=4), content_type='application/json')
 
 
-'''
+
 @csrf_exempt
 def getAreaJson(request):
     response_data = []
@@ -602,4 +605,3 @@ def getAreaJson(request):
     #/json")
     return HttpResponse(json.dumps(response_data, ensure_ascii=False, indent=4), content_type='application/json')
 
-'''

@@ -7,7 +7,7 @@ from smart_selects.db_fields import ChainedForeignKey
 
 class AsAreas(models.Model):
     id = models.IntegerField(primary_key=True)  # AutoField?
-    parent_id = models.ForeignKey('self')
+    parent = models.ForeignKey('self')
     area_name = models.CharField(max_length=50)
     zipcode = models.CharField(max_length=6)
 
